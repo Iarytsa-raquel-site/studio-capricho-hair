@@ -1,29 +1,3 @@
-  let image=document.getElementById('newWorkImage').value.trim();
-  if(!title || (!file && !image)){toast('Informe título e selecione uma foto ou URL.');return;}
-  if(file && sb){
-    if(!currentAdminUser){toast('Faça login para enviar fotos.');return;}
-    try{
-      document.getElementById('uploadStatus').textContent='Enviando...';
-      image=await uploadPortfolioFile(file);
-      document.getElementById('uploadStatus').textContent='Enviada com sucesso.';
-    }catch(e){toast('Falha no upload.');return;}
-  }
-  if(sb && currentAdminUser){
-    const {error}=await sb.from('portfolio').insert({title,category,image_url:image,instagram_url:'https://www.instagram.com/caprichoohair_/',active:true});
-    if(error){toast('Erro ao salvar no portfólio.');return;}
-  }
-  portfolio.push({title,category,image});
-  savePortfolio();
-  ['newWorkTitle','newWorkCategory','newWorkImage'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('newWorkFile').value='';
-  document.getElementById('uploadStatus').textContent='Nenhuma foto selecionada.';
-  previewPortfolioImage(); renderAll(); toast('Foto adicionada ao portfólio.');
-}
-function removePortfolioItem(i){
-  if(!confirm('Excluir esta foto do portfólio?')) return;
-  portfolio.splice(i,1); savePortfolio(); renderAll(); toast('Foto removida.');
-}
-
 async function saveStudioProfile(){
   studioProfile={
     displayName:document.getElementById('adminDisplayName').value.trim(),
