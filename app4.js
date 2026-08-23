@@ -1,129 +1,17 @@
-async function saveStudioProfile(){
-  studioProfile={
-    displayName:document.getElementById('adminDisplayName').value.trim(),
-    specialty:document.getElementById('adminSpecialty').value.trim(),
-    bio:document.getElementById('adminBio').value.trim(),
-    instagram:document.getElementById('adminInstagram').value.trim(),
-    address:document.getElementById('adminAddress').value.trim()
-  };
-  localStorage.setItem('sc_profile',JSON.stringify(studioProfile));
-  if(sb && currentAdminUser){
-    const r=await sb.from('studio_profile').select('id').limit(1);
-    if(r.data?.length) await sb.from('studio_profile').update({
-      display_name:studioProfile.displayName,specialty:studioProfile.specialty,bio:studioProfile.bio,
-      instagram:studioProfile.instagram,address:studioProfile.address,updated_at:new Date().toISOString()
-    }).eq('id',r.data[0].id);
-  }
-  applyStudioProfile();
-  toast('Informações salvas.');
-}
-function applyStudioProfile(){
-  document.querySelectorAll('.js-profile-name').forEach(el=>el.textContent=studioProfile.displayName);
-  document.querySelectorAll('.js-profile-specialty').forEach(el=>el.textContent=studioProfile.specialty);
-  document.querySelectorAll('.js-profile-bio').forEach(el=>el.textContent=studioProfile.bio);
-  document.querySelectorAll('.js-profile-address').forEach(el=>el.textContent=studioProfile.address);
-}
-
-function populateAdmin(){
-  document.getElementById('quickService').innerHTML=services.map(s=>`<option value="${s.id}">${s.name} — ${money(s.price)}</option>`).join('');
-  document.getElementById('quickProfessional').innerHTML=professionals.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-  document.getElementById('quickTime').innerHTML=times.map(t=>`<option>${t}</option>`).join('');
-}
+async function saveStudioProfile(){studioProfile={displayName:document.getElementById('adminDisplayName').value.trim(),specialty:document.getElementById('adminSpecialty').value.trim(),bio:document.getElementById('adminBio').value.trim(),instagram:document.getElementById('adminInstagram').value.trim(),address:document.getElementById('adminAddress').value.trim()};localStorage.setItem('sc_profile',JSON.stringify(studioProfile));if(sb&&currentAdminUser){const r=await sb.from('studio_profile').select('id').limit(1);if(r.data?.length)await sb.from('studio_profile').update({display_name:studioProfile.displayName,specialty:studioProfile.specialty,bio:studioProfile.bio,instagram:studioProfile.instagram,address:studioProfile.address,updated_at:new Date().toISOString()}).eq('id',r.data[0].id);}applyStudioProfile();toast('Informações salvas.');}
+function applyStudioProfile(){document.querySelectorAll('.js-profile-name').forEach(el=>el.textContent=studioProfile.displayName);document.querySelectorAll('.js-profile-specialty').forEach(el=>el.textContent=studioProfile.specialty);document.querySelectorAll('.js-profile-bio').forEach(el=>el.textContent=studioProfile.bio);document.querySelectorAll('.js-profile-address').forEach(el=>el.textContent=studioProfile.address);}
+function populateAdmin(){document.getElementById('quickService').innerHTML=services.map(s=>`<option value="${s.id}">${s.name} — ${money(s.price)}</option>`).join('');document.getElementById('quickProfessional').innerHTML=professionals.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');document.getElementById('quickTime').innerHTML=times.map(t=>`<option>${t}</option>`).join('');}
 function renderAdmin(){
-  const bookings=getBookings().filter(b=>b.status!=='cancelado').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-  document.getElementById('statBookings').textContent=bookings.length;
-  document.getElementById('statRevenue').textContent=money(bookings.reduce((sum,b)=>sum+b.price,0));
-  document.getElementById('adminBookings').innerHTML=bookings.length?bookings.map(b=>`
-    <div class="card" style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;gap:12px">
-        <div>
-          <strong>${fmtDate(b.date)} • ${b.time}</strong>
-          <div>${b.clientName}</div>
-          <div class="muted">${b.serviceName} • ${b.professionalName}</div>
-        </div>
-        <div style="text-align:right"><strong>${money(b.price)}</strong><br><span class="pill status-confirmado">${b.status}</span></div>
-      </div>
-    </div>`).join(''):'<div class="card empty">Nenhum agendamento cadastrado.</div>';
+ const bookings=getBookings().filter(b=>b.status!=='cancelado').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+ document.getElementById('statBookings').textContent=bookings.filter(b=>b.status==='confirmado').length;
+ document.getElementById('statRevenue').textContent=money(bookings.filter(b=>b.status==='confirmado').reduce((sum,b)=>sum+b.price,0));
+ document.getElementById('adminBookings').innerHTML=bookings.length?bookings.map(b=>`<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:12px"><div><strong>${fmtDate(b.date)} • ${b.time}</strong><div>${b.clientName}</div><div class="muted">${b.serviceName} • ${b.professionalName}</div><div class="muted">WhatsApp: ${b.phone}</div></div><div style="text-align:right"><strong>${money(b.price)}</strong><br><span class="pill ${b.status==='confirmado'?'status-confirmado':''}">${statusLabel(b.status)}</span></div></div>${b.status==='pendente'?`<div class="top-gap" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="setBookingStatus('${b.id}','confirmado')">Confirmar</button><button class="btn danger" onclick="setBookingStatus('${b.id}','recusado')">Recusar</button></div>`:''}</div>`).join(''):'<div class="card empty">Nenhum agendamento cadastrado.</div>';
 }
-async function quickBook(){
-  const name=document.getElementById('quickName').value.trim();
-  const phone=document.getElementById('quickPhone').value.trim();
-  const serviceId=document.getElementById('quickService').value;
-  const professionalId=document.getElementById('quickProfessional').value;
-  const date=document.getElementById('quickDate').value;
-  const time=document.getElementById('quickTime').value;
-  if(!name || !phone || !date){ toast('Preencha cliente, WhatsApp e data.'); return; }
-  const s=services.find(x=>x.id===serviceId);
-  const p=professionals.find(x=>x.id===professionalId);
-  if(!isSlotFree(date,professionalId,time,s.duration)){ toast('Esse horário está ocupado.'); return; }
-  const booking={
-    id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),clientName:name,phone,
-    serviceId:s.id,serviceName:s.name,professionalId:p.id,professionalName:p.name,
-    date,time,endTime:addMinutes(time,s.duration),price:s.price,status:'confirmado',createdAt:new Date().toISOString()
-  };
-  const cloud=await cloudCreateBooking(booking);
-  if(!cloud.ok){toast('Horário indisponível ou falha na nuvem.');return;}
-  if(cloud.id) booking.id=cloud.id;
-  const bookings=getBookings();bookings.push(booking);saveBookings(bookings);
-  renderAll();
-  toast('Agendamento salvo no painel.');
-  document.getElementById('quickName').value='';
-  document.getElementById('quickPhone').value='';
-}
-
-let adminMode=false;
-const modeBtn=document.getElementById('modeBtn');
-const forceAdmin=new URLSearchParams(window.location.search).get('admin')==='1';
-
-async function openAdminArea(){
-  adminMode=true;
-  document.getElementById('clientApp').classList.add('hidden');
-  document.getElementById('clientNav').classList.add('hidden');
-  document.getElementById('adminApp').classList.remove('hidden');
-  if(modeBtn){
-    modeBtn.style.display='inline-block';
-    modeBtn.textContent='Voltar ao site';
-    modeBtn.onclick=()=>{window.location.href='./';};
-  }
-  renderAdmin();
-  await checkAdminSession();
-}
-
-function openClientArea(){
-  adminMode=false;
-  document.getElementById('clientApp').classList.remove('hidden');
-  document.getElementById('clientNav').classList.remove('hidden');
-  document.getElementById('adminApp').classList.add('hidden');
-  if(modeBtn) modeBtn.style.display='none';
-}
-
-if(forceAdmin) openAdminArea();
-else openClientArea();
-
+async function quickBook(){const name=document.getElementById('quickName').value.trim(),phone=document.getElementById('quickPhone').value.trim(),serviceId=document.getElementById('quickService').value,professionalId=document.getElementById('quickProfessional').value,date=document.getElementById('quickDate').value,time=document.getElementById('quickTime').value;if(!name||!phone||!date){toast('Preencha cliente, WhatsApp e data.');return;}const s=services.find(x=>x.id===serviceId),p=professionals.find(x=>x.id===professionalId);if(!isSlotFree(date,professionalId,time,s.duration)){toast('Esse horário está ocupado.');return;}const booking={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),clientName:name,phone,serviceId:s.id,serviceName:s.name,professionalId:p.id,professionalName:p.name,date,time,endTime:addMinutes(time,s.duration),price:s.price,status:'pendente',createdAt:new Date().toISOString()};const cloud=await cloudCreateBooking(booking);if(!cloud.ok){toast('Horário indisponível ou falha na nuvem.');return;}if(cloud.id)booking.id=cloud.id;const bookings=getBookings();bookings.push(booking);saveBookings(bookings);renderAll();toast('Solicitação adicionada. Confirme quando desejar.');}
+let adminMode=false;const modeBtn=document.getElementById('modeBtn');const forceAdmin=new URLSearchParams(window.location.search).get('admin')==='1';
+async function openAdminArea(){adminMode=true;document.getElementById('clientApp').classList.add('hidden');document.getElementById('clientNav').classList.add('hidden');document.getElementById('adminApp').classList.remove('hidden');if(modeBtn){modeBtn.style.display='inline-block';modeBtn.textContent='Voltar ao site';modeBtn.onclick=()=>{window.location.href='./';};}renderAdmin();await checkAdminSession();}
+function openClientArea(){adminMode=false;document.getElementById('clientApp').classList.remove('hidden');document.getElementById('clientNav').classList.remove('hidden');document.getElementById('adminApp').classList.add('hidden');if(modeBtn)modeBtn.style.display='none';}
+if(forceAdmin)openAdminArea();else openClientArea();
 document.getElementById('bookingDate').addEventListener('change',renderSlots);
-
-function renderAll(){
-  renderPortfolio(); renderServices(); renderProfessionals(); renderSlots();
-  renderMyBookings(); renderNextBooking(); renderAdmin();
-  renderAdminServices(); renderAdminPortfolio(); applyStudioProfile();
-}
-
-const today=new Date();
-const minDate=today.toISOString().slice(0,10);
-document.getElementById('bookingDate').min=minDate;
-document.getElementById('quickDate').min=minDate;
-document.getElementById('bookingDate').value=minDate;
-document.getElementById('quickDate').value=minDate;
-state.date=minDate;
-
-populateAdmin();
-document.getElementById('adminDisplayName').value=studioProfile.displayName;
-document.getElementById('adminSpecialty').value=studioProfile.specialty;
-document.getElementById('adminBio').value=studioProfile.bio;
-document.getElementById('adminInstagram').value=studioProfile.instagram;
-document.getElementById('adminAddress').value=studioProfile.address;
-renderAll();
-
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('service-worker.js').catch(()=>{});
-}
+function renderAll(){renderPortfolio();renderServices();renderProfessionals();renderSlots();renderMyBookings();renderNextBooking();renderAdmin();renderAdminServices();renderAdminPortfolio();applyStudioProfile();}
+const today=new Date(),minDate=today.toISOString().slice(0,10);document.getElementById('bookingDate').min=minDate;document.getElementById('quickDate').min=minDate;document.getElementById('bookingDate').value=minDate;document.getElementById('quickDate').value=minDate;state.date=minDate;populateAdmin();document.getElementById('adminDisplayName').value=studioProfile.displayName;document.getElementById('adminSpecialty').value=studioProfile.specialty;document.getElementById('adminBio').value=studioProfile.bio;document.getElementById('adminInstagram').value=studioProfile.instagram;document.getElementById('adminAddress').value=studioProfile.address;renderAll();if('serviceWorker'in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}
