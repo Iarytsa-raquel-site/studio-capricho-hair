@@ -104,5 +104,7 @@
   window.approveReview=approveReview;
   window.deleteReview=deleteReview;
   window.loadAdminReviews=loadAdminReviews;
-  document.addEventListener('DOMContentLoaded',()=>{injectClientReviews();injectAdminReviews();setTimeout(()=>{fillReviewServices();loadReviews();},300);});
+  function initReviews(){injectClientReviews();injectAdminReviews();setTimeout(()=>{fillReviewServices();loadReviews();},300);}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initReviews);
+  else initReviews();
 })();
