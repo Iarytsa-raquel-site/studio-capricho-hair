@@ -71,4 +71,12 @@ function initProfessionalLogin(){
   }else window.initPasswordRecoveryUi?.();
 }
 
-setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();},250);
+function loadAdminSecurityLayer(){
+  if(document.querySelector('script[data-admin-security-loader]'))return;
+  const s=document.createElement('script');
+  s.src='app9.js?v=25';
+  s.dataset.adminSecurityLoader='true';
+  document.body.appendChild(s);
+}
+
+setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();},250);
