@@ -1,3 +1,9 @@
+const blockStyle=document.createElement('style');
+blockStyle.textContent=`
+.availability-manager{margin:28px 0 8px}.availability-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}.availability-head .section-title{margin:2px 0 0}.availability-count{font-size:11px;color:#d7a93f;border:1px solid rgba(215,169,63,.3);background:#17130b;padding:7px 9px;border-radius:999px;white-space:nowrap}.availability-form{border-color:rgba(215,169,63,.2)}.whole-day-label{display:flex;align-items:center;gap:9px;text-transform:none;letter-spacing:0;font-size:13px;color:#f2eee4;cursor:pointer}.whole-day-label input{width:18px;height:18px;accent-color:#d7a93f}.availability-list{display:grid;gap:9px;margin-top:11px}.availability-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(180deg,#151515,#101010);border:1px solid #30291f;border-radius:15px;padding:13px 14px}.availability-item strong{font-size:13px;color:#f2eee4}.calendar-day.blocked-day{border-color:#9a343c!important;background:#261014!important;color:#ff9ca2!important}.calendar-day.partially-blocked{border-color:#8b6b24!important;background:#211a0c!important}.calendar-day.blocked-day::after,.calendar-day.partially-blocked::after{content:"";display:block;width:5px;height:5px;border-radius:50%;margin:3px auto 0;background:currentColor}.availability-manager .small-btn.danger{color:#ff9ca2;background:#251014;border-color:#633039}@media(max-width:380px){.availability-head{align-items:flex-start;flex-direction:column}.availability-count{align-self:flex-start}}
+`;
+document.head.appendChild(blockStyle);
+
 let blockManagerReady=false;
 
 function ensureAvailabilityManager(){
