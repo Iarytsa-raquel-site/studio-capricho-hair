@@ -11,10 +11,19 @@ function renderPortfolio(){
   document.getElementById('professionalPortfolio').innerHTML=portfolio.slice(0,4).map(card).join('');
   document.getElementById('portfolioFull').innerHTML=portfolio.map(card).join('');
 }
+function serviceCategory(name=''){
+  const n=name.toLowerCase();
+  if(n.includes('progress')||n.includes('selagem')||n.includes('alisamento')||n.includes('alinhamento')) return 'Progressiva e Selagem';
+  if(n.includes('botox')) return 'Botox Capilar';
+  if(n.includes('hidrata')||n.includes('nutri')||n.includes('reconstru')||n.includes('cauter')||n.includes('cronograma')) return 'Cuidados Capilares';
+  return 'Outros Serviços';
+}
 function renderServices(){
-  const html=services.map(s=>`<div class="card service-card ${state.service===s.id?'selected':''}" onclick="selectService('${s.id}')"><strong>${s.name}</strong><div class="muted">${s.duration} min</div><div class="price">${money(s.price)}</div></div>`).join('');
-  document.getElementById('serviceList').innerHTML=html;
-  document.getElementById('homeServices').innerHTML=services.slice(0,4).map(s=>`<div class="card"><strong>${s.name}</strong><div class="muted">${s.duration} min</div><div class="price">${money(s.price)}</div></div>`).join('');
+  const order=['Progressiva e Selagem','Botox Capilar','Cuidados Capilares','Outros Serviços'];
+  const grouped=order.map(category=>({category,items:services.filter(s=>serviceCategory(s.name)===category)})).filter(g=>g.items.length);
+  const item=s=>`<div class="card service-card ${state.service===s.id?'selected':''}" onclick="selectService('${s.id}')"><strong>${s.name}</strong><div class="muted">${s.duration} min</div><div class="price">${money(s.price)}</div></div>`;
+  document.getElementById('serviceList').innerHTML=grouped.map(g=>`<div class="service-category"><div class="service-category-head"><span>${g.category}</span><small>${g.items.length} ${g.items.length===1?'opção':'opções'}</small></div><div class="grid two">${g.items.map(item).join('')}</div></div>`).join('');
+  document.getElementById('homeServices').innerHTML=services.slice(0,4).map(s=>`<div class="card"><div class="mini-title">${serviceCategory(s.name)}</div><strong>${s.name}</strong><div class="muted">${s.duration} min</div><div class="price">${money(s.price)}</div></div>`).join('');
 }
 function renderProfessionals(){document.getElementById('professionalList').innerHTML=professionals.map(p=>`<div class="card pro-card ${state.professional===p.id?'selected':''}" onclick="selectProfessional('${p.id}')"><strong>${p.name}</strong><div class="muted">${p.specialty}</div></div>`).join('');}
 function selectService(id){state.service=id;renderServices();renderSlots();}
