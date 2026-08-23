@@ -60,7 +60,12 @@ function loadAdminSecurityLayer(){
 
 function loadPerformanceDashboard(){
   if(!document.querySelector('link[data-performance-style]')){const l=document.createElement('link');l.rel='stylesheet';l.href='performance.css?v=27';l.dataset.performanceStyle='true';document.head.appendChild(l);}
-  if(!document.querySelector('script[data-performance-loader]')){const s=document.createElement('script');s.src='app11.js?v=27';s.dataset.performanceLoader='true';document.body.appendChild(s);}
+  if(!document.querySelector('link[data-expenses-style]')){const l=document.createElement('link');l.rel='stylesheet';l.href='expenses.css?v=28';l.dataset.expensesStyle='true';document.head.appendChild(l);}
+  if(!document.querySelector('script[data-performance-loader]')){
+    const s=document.createElement('script');s.src='app11.js?v=27';s.dataset.performanceLoader='true';
+    s.onload=()=>{if(document.querySelector('script[data-expenses-loader]'))return;const e=document.createElement('script');e.src='app12.js?v=28';e.dataset.expensesLoader='true';document.body.appendChild(e);};
+    document.body.appendChild(s);
+  }
 }
 
 setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();},250);
