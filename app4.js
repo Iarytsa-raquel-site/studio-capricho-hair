@@ -72,14 +72,33 @@ async function quickBook(){
 }
 
 let adminMode=false;
-document.getElementById('modeBtn').addEventListener('click',async()=>{
-  adminMode=!adminMode;
-  document.getElementById('clientApp').classList.toggle('hidden',adminMode);
-  document.getElementById('clientNav').classList.toggle('hidden',adminMode);
-  document.getElementById('adminApp').classList.toggle('hidden',!adminMode);
-  document.getElementById('modeBtn').textContent=adminMode?'Área da Cliente':'Área do Studio';
-  if(adminMode){renderAdmin();await checkAdminSession();}
-});
+const modeBtn=document.getElementById('modeBtn');
+const forceAdmin=new URLSearchParams(window.location.search).get('admin')==='1';
+
+async function openAdminArea(){
+  adminMode=true;
+  document.getElementById('clientApp').classList.add('hidden');
+  document.getElementById('clientNav').classList.add('hidden');
+  document.getElementById('adminApp').classList.remove('hidden');
+  if(modeBtn){
+    modeBtn.style.display='inline-block';
+    modeBtn.textContent='Voltar ao site';
+    modeBtn.onclick=()=>{window.location.href='./';};
+  }
+  renderAdmin();
+  await checkAdminSession();
+}
+
+function openClientArea(){
+  adminMode=false;
+  document.getElementById('clientApp').classList.remove('hidden');
+  document.getElementById('clientNav').classList.remove('hidden');
+  document.getElementById('adminApp').classList.add('hidden');
+  if(modeBtn) modeBtn.style.display='none';
+}
+
+if(forceAdmin) openAdminArea();
+else openClientArea();
 
 document.getElementById('bookingDate').addEventListener('change',renderSlots);
 
