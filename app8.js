@@ -76,6 +76,13 @@ function loadAdminSecurityLayer(){
   const s=document.createElement('script');
   s.src='app9.js?v=25';
   s.dataset.adminSecurityLoader='true';
+  s.onload=()=>{
+    if(document.querySelector('script[data-booking-flow-hardening]'))return;
+    const h=document.createElement('script');
+    h.src='app10.js?v=26';
+    h.dataset.bookingFlowHardening='true';
+    document.body.appendChild(h);
+  };
   document.body.appendChild(s);
 }
 
