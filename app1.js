@@ -135,3 +135,33 @@ function getBookings(){
   return JSON.parse(localStorage.getItem('sc_bookings') || '[]');
 }
 function saveBookings(items){
+  localStorage.setItem('sc_bookings', JSON.stringify(items));
+}
+function money(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function fmtDate(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function addMinutes(hhmm, mins){
+  const [h,m] = hhmm.split(':').map(Number);
+  const d = new Date(2000,0,1,h,m+mins);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function overlaps(start1,end1,start2,end2){
+  return start1 < end2 && end1 > start2;
+}
+function isSlotFree(date, professionalId, time, duration){
+  const end = addMinutes(time,duration);
+  return !getBookings().some(b =>
+    b.date === date &&
+    b.professionalId === professionalId &&
+    b.status !== 'cancelado' &&
+    overlaps(time,end,b.time,b.endTime)
+  );
+}
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.remove('hidden');
+  setTimeout(()=>el.classList.add('hidden'),2600);
+}
