@@ -1,13 +1,29 @@
 async function cancelBooking(id){const ok=await cloudCancelBooking(id);if(!ok){toast('Falha ao cancelar.');return;}const bookings=getBookings().map(b=>b.id===id?{...b,status:'cancelado'}:b);saveBookings(bookings);renderAll();toast('Agendamento cancelado.');}
-function statusLabel(s){return s==='pendente'?'Aguardando confirmação':s==='confirmado'?'Confirmado':s==='recusado'?'Recusado':s==='cancelado'?'Cancelado':s;}
+function statusLabel(s){return s==='pendente'?'Aguardando confirmação':s==='confirmado'?'Confirmado':s==='proposta'?'Novo horário sugerido':s==='recusado'?'Recusado':s==='cancelado'?'Cancelado':s;}
 async function setBookingStatus(id,status){
   if(!sb||!currentAdminUser){toast('Faça login.');return;}
   const {error}=await sb.from('bookings').update({status}).eq('id',id);if(error){toast('Não foi possível atualizar o agendamento.');return;}
   const bookings=getBookings().map(b=>b.id===id?{...b,status}:b);saveBookings(bookings);renderAll();toast(status==='confirmado'?'Agendamento confirmado.':'Solicitação recusada.');
 }
-window.setBookingStatus=setBookingStatus;
-function renderMyBookings(){const phone=localStorage.getItem('sc_last_phone');const all=getBookings().filter(b=>!phone||b.phone===phone).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));const el=document.getElementById('myBookings');if(!all.length){el.innerHTML='<div class="card empty">Nenhum agendamento ainda.</div>';return;}el.innerHTML=all.map(b=>`<div class="card booking-card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px"><div><strong>${fmtDate(b.date)} • ${b.time}</strong><div class="muted">${b.serviceName} com ${b.professionalName}</div></div><span class="pill ${b.status==='confirmado'?'status-confirmado':''}">${statusLabel(b.status)}</span></div></div>`).join('');}
-function renderNextBooking(){const phone=localStorage.getItem('sc_last_phone'),now=new Date().toISOString().slice(0,10);const b=getBookings().filter(x=>!['cancelado','recusado'].includes(x.status)&&(!phone||x.phone===phone)&&x.date>=now).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];document.getElementById('nextBooking').innerHTML=b?`<div class="card"><strong>${fmtDate(b.date)} • ${b.time}</strong><div class="muted">${b.serviceName} com ${b.professionalName}</div><div class="top-gap"></div><span class="pill ${b.status==='confirmado'?'status-confirmado':''}">${statusLabel(b.status)}</span></div>`:'<div class="card empty">Você ainda não tem atendimento marcado.</div>';}
+async function suggestAlternative(id){
+  if(!sb||!currentAdminUser){toast('Faça login.');return;}
+  const b=getBookings().find(x=>x.id===id);if(!b)return;
+  const date=prompt('Nova data (AAAA-MM-DD):',b.date);if(!date)return;
+  const time=prompt('Novo horário (HH:MM):',b.time);if(!time)return;
+  const dow=new Date(date+'T12:00:00').getDay();if(dow===0||dow===1){toast('O Studio não atende domingo ou segunda.');return;}
+  if(time<'09:00'||time>'17:00'){toast('Escolha um horário entre 09:00 e 17:00.');return;}
+  const {error}=await sb.from('bookings').update({status:'proposta',proposed_date:date,proposed_time:time}).eq('id',id);
+  if(error){toast('Não foi possível sugerir outro horário.');return;}
+  const bookings=getBookings().map(x=>x.id===id?{...x,status:'proposta',proposedDate:date,proposedTime:time}:x);saveBookings(bookings);renderAll();
+  const phone=(b.phone||'').replace(/\D/g,'');
+  const brPhone=phone.startsWith('55')?phone:'55'+phone;
+  const msg=`Olá, ${b.clientName}! Aqui é do Studio Capricho Hair. Para o serviço ${b.serviceName}, o horário solicitado não está disponível. Podemos te atender em ${fmtDate(date)} às ${time}. Esse horário funciona para você?`;
+  window.open(`https://wa.me/${brPhone}?text=${encodeURIComponent(msg)}`,'_blank','noopener,noreferrer');
+  toast('Novo horário salvo e WhatsApp preparado.');
+}
+window.setBookingStatus=setBookingStatus;window.suggestAlternative=suggestAlternative;
+function renderMyBookings(){const phone=localStorage.getItem('sc_last_phone');const all=getBookings().filter(b=>!phone||b.phone===phone).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));const el=document.getElementById('myBookings');if(!all.length){el.innerHTML='<div class="card empty">Nenhum agendamento ainda.</div>';return;}el.innerHTML=all.map(b=>`<div class="card booking-card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px"><div><strong>${fmtDate(b.date)} • ${b.time}</strong><div class="muted">${b.serviceName} com ${b.professionalName}</div>${b.status==='proposta'&&b.proposedDate?`<div class="muted"><strong>Sugestão do Studio:</strong> ${fmtDate(b.proposedDate)} às ${b.proposedTime}</div>`:''}</div><span class="pill ${b.status==='confirmado'?'status-confirmado':''}">${statusLabel(b.status)}</span></div></div>`).join('');}
+function renderNextBooking(){const phone=localStorage.getItem('sc_last_phone'),now=new Date().toISOString().slice(0,10);const b=getBookings().filter(x=>!['cancelado','recusado'].includes(x.status)&&(!phone||x.phone===phone)&&x.date>=now).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0];document.getElementById('nextBooking').innerHTML=b?`<div class="card"><strong>${fmtDate(b.date)} • ${b.time}</strong><div class="muted">${b.serviceName} com ${b.professionalName}</div>${b.status==='proposta'&&b.proposedDate?`<div class="muted top-gap"><strong>Sugestão do Studio:</strong> ${fmtDate(b.proposedDate)} às ${b.proposedTime}</div>`:''}<div class="top-gap"></div><span class="pill ${b.status==='confirmado'?'status-confirmado':''}">${statusLabel(b.status)}</span></div>`:'<div class="card empty">Você ainda não tem atendimento marcado.</div>';}
 function showClientView(id,btn){['homeView','bookView','professionalView','portfolioView','myBookingsView','profileView','reviewsView'].forEach(x=>document.getElementById(x)?.classList.add('hidden'));document.getElementById(id)?.classList.remove('hidden');document.querySelectorAll('#clientNav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');if(id==='bookView')renderSlots();if(id==='myBookingsView')renderMyBookings();window.scrollTo({top:0,behavior:'smooth'});}
 function showAdminTab(id,btn){document.querySelectorAll('.admin-panel').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.admin-tabs button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');}
 function saveServices(){localStorage.setItem('sc_services',JSON.stringify(services));}
