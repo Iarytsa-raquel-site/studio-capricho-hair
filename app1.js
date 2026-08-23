@@ -30,7 +30,7 @@ async function checkAdminSession(){
   if(!sb){showAdminLogin();return;}
   const {data}=await sb.auth.getSession();
   currentAdminUser=data.session?.user||null;
-  currentAdminUser ? showAdminDashboard() : showAdminLogin();
+  if(currentAdminUser){showAdminDashboard();await cloudLoad(true);}else showAdminLogin();
 }
 function showAdminLogin(){
   document.getElementById('adminLoginView').classList.remove('hidden');
@@ -65,7 +65,7 @@ async function cloudLoad(includeBookings=false){
         id:x.id,clientName:x.client_name,phone:x.phone,serviceId:x.service_id,serviceName:x.service_name,
         professionalId:x.professional_id,professionalName:x.professional_name,date:x.booking_date,
         time:(x.start_time||'').slice(0,5),endTime:(x.end_time||'').slice(0,5),price:Number(x.price),
-        status:x.status,createdAt:x.created_at
+        status:x.status,proposedDate:x.proposed_date,proposedTime:(x.proposed_time||'').slice(0,5),createdAt:x.created_at
       }))));
     }
   }
@@ -114,7 +114,7 @@ let portfolio = JSON.parse(localStorage.getItem('sc_portfolio') || 'null') || [
   {title:'Transformação e finalização', category:'Resultado real', image:'assets/trabalho-04.jpg'}
 ];
 
-const times = ['08:30','09:30','10:30','11:30','13:00','14:00','15:00','16:00','17:00'];
+const times = ['09:00','09:30','10:30','11:30','13:00','14:00','15:00','16:00','17:00'];
 
 let studioProfile = JSON.parse(localStorage.getItem('sc_profile') || 'null') || {
   displayName:'Studio Capricho | Cabeleireira',
@@ -156,7 +156,7 @@ function isSlotFree(date, professionalId, time, duration){
   return !getBookings().some(b =>
     b.date === date &&
     b.professionalId === professionalId &&
-    b.status !== 'cancelado' &&
+    !['cancelado','recusado'].includes(b.status) &&
     overlaps(time,end,b.time,b.endTime)
   );
 }
