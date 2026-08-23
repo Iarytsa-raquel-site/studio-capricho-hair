@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Add password reset helper
+        run: sed -i 's#</body>#<script src="password-reset.js"></script>\n</body>#' index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
