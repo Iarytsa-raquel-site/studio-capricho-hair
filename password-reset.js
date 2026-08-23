@@ -1,6 +1,9 @@
 (function(){
   function resetRedirectUrl(){
-    return window.location.origin + window.location.pathname;
+    const u=new URL(window.location.href);
+    u.searchParams.set('admin','1');
+    u.searchParams.delete('v');
+    return u.origin+u.pathname+'?admin=1';
   }
 
   function addRecoveryUi(){
@@ -12,7 +15,7 @@
     forgot.id='forgotPasswordBtn';
     forgot.type='button';
     forgot.className='btn ghost';
-    forgot.style.marginTop='10px';
+    forgot.style.marginTop='6px';
     forgot.textContent='Esqueci minha senha';
     forgot.addEventListener('click',requestPasswordReset);
     if(enterBtn) enterBtn.insertAdjacentElement('afterend',forgot);
@@ -36,32 +39,22 @@
   }
 
   async function requestPasswordReset(){
-    if(typeof sb==='undefined' || !sb){
-      toast('A conexão com o Supabase não está disponível.');
-      return;
-    }
+    if(typeof sb==='undefined' || !sb){toast('A conexão com o Supabase não está disponível.');return;}
     const input=document.getElementById('adminEmail');
     const email=(input?.value||'').trim();
-    if(!email){
-      toast('Digite o e-mail do administrador primeiro.');
-      input?.focus();
-      return;
-    }
+    if(!email){toast('Digite o e-mail do administrador primeiro.');input?.focus();return;}
     const btn=document.getElementById('forgotPasswordBtn');
     if(btn){btn.disabled=true;btn.textContent='Enviando...';}
     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:resetRedirectUrl()});
     if(btn){btn.disabled=false;btn.textContent='Esqueci minha senha';}
-    if(error){
-      console.error(error);
-      toast('Não foi possível enviar o e-mail de recuperação.');
-      return;
-    }
+    if(error){console.error(error);toast('Não foi possível enviar o e-mail de recuperação.');return;}
     toast('E-mail de recuperação enviado. Verifique sua caixa de entrada.');
     const note=document.getElementById('authNote');
-    if(note) note.textContent='Enviamos um link para redefinir sua senha. Abra o e-mail e volte por esse link.';
+    if(note) note.textContent='Enviamos um link seguro para redefinir sua senha. Verifique também a pasta de spam.';
   }
 
   function showNewPasswordPanel(){
+    addRecoveryUi();
     const panel=document.getElementById('newPasswordPanel');
     if(panel) panel.classList.remove('hidden');
     const note=document.getElementById('authNote');
@@ -90,17 +83,15 @@
 
   window.requestPasswordReset=requestPasswordReset;
   window.finishPasswordReset=finishPasswordReset;
+  window.initPasswordRecoveryUi=addRecoveryUi;
 
-  document.addEventListener('DOMContentLoaded',()=>{
+  const init=()=>{
     addRecoveryUi();
     if(typeof sb!=='undefined' && sb){
-      sb.auth.onAuthStateChange((event)=>{
-        if(event==='PASSWORD_RECOVERY'){
-          setTimeout(showNewPasswordPanel,0);
-        }
-      });
+      sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(showNewPasswordPanel,0);});
     }
-  });
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 
 (function(){
