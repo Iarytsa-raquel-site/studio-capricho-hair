@@ -44,4 +44,31 @@ renderAdmin=function(){
   addQuickMessageButtons();
 };
 
-setTimeout(()=>{if(adminMode)addQuickMessageButtons();},500);
+function initProfessionalLogin(){
+  if(!document.querySelector('link[href*="login.css"]')){
+    const l=document.createElement('link');l.rel='stylesheet';l.href='login.css?v=24';document.head.appendChild(l);
+  }
+  const shell=document.querySelector('#adminLoginView .login-shell');
+  if(!shell)return;
+  const subtitle=shell.querySelector('p.muted');
+  if(subtitle)subtitle.textContent='Acesso seguro para gerenciamento da agenda e clientes.';
+  const password=document.getElementById('adminPassword');
+  if(password&&!password.closest('.password-wrap')){
+    const wrap=document.createElement('div');wrap.className='password-wrap';
+    password.parentNode.insertBefore(wrap,password);wrap.appendChild(password);
+    const toggle=document.createElement('button');toggle.type='button';toggle.className='password-toggle';toggle.setAttribute('aria-label','Mostrar ou ocultar senha');toggle.textContent='◉';
+    toggle.onclick=()=>{password.type=password.type==='password'?'text':'password';toggle.textContent=password.type==='password'?'◉':'◎';};wrap.appendChild(toggle);
+  }
+  if(!shell.querySelector('.login-security')){
+    const auth=document.getElementById('authNote');
+    const sec=document.createElement('div');sec.className='login-security';sec.innerHTML='<span>✓</span><span>Conexão protegida • acesso exclusivo do Studio</span>';
+    if(auth)auth.insertAdjacentElement('beforebegin',sec);else shell.appendChild(sec);
+    const divider=document.createElement('div');divider.className='login-divider';sec.insertAdjacentElement('afterend',divider);
+    const helper=document.createElement('div');helper.className='login-helper';helper.textContent='Se esquecer sua senha, use a recuperação por e-mail abaixo.';divider.insertAdjacentElement('afterend',helper);
+  }
+  if(!document.querySelector('script[data-password-reset-loader]')){
+    const s=document.createElement('script');s.src='password-reset.js?v=24';s.dataset.passwordResetLoader='true';s.onload=()=>window.initPasswordRecoveryUi?.();document.body.appendChild(s);
+  }else window.initPasswordRecoveryUi?.();
+}
+
+setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();},250);
