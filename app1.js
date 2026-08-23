@@ -45,15 +45,17 @@ function showAdminDashboard(){
 }
 async function cloudLoad(includeBookings=false){
   if(!sb) return;
-  const [sv,pf,pt,pr]=await Promise.all([
+  const [sv,pf,pt,pr,bl]=await Promise.all([
     sb.from('services').select('*').eq('active',true).order('created_at'),
     sb.from('professionals').select('*').eq('active',true).order('created_at'),
     sb.from('portfolio').select('*').eq('active',true).order('sort_order'),
-    sb.from('studio_profile').select('*').limit(1)
+    sb.from('studio_profile').select('*').limit(1),
+    sb.rpc('get_availability_blocks_public')
   ]);
   if(sv.data?.length) services=sv.data.map(x=>({id:x.id,name:x.name,price:Number(x.price),duration:x.duration}));
   if(pf.data?.length) professionals=pf.data.map(x=>({id:x.id,name:x.name,specialty:x.specialty||''}));
   if(pt.data?.length) portfolio=pt.data.map(x=>({id:x.id,title:x.title,category:x.category||'Trabalho realizado',image:x.image_url}));
+  if(bl.data) availabilityBlocks=bl.data.map(x=>({id:x.id,professionalId:x.professional_id,date:x.block_date,startTime:(x.start_time||'').slice(0,5)||null,endTime:(x.end_time||'').slice(0,5)||null}));
   if(pr.data?.length){
     const x=pr.data[0];
     studioProfile={displayName:x.display_name,specialty:x.specialty||'',bio:x.bio||'',instagram:x.instagram||'',address:x.address||''};
@@ -107,6 +109,8 @@ let professionals = [
   {id:'studio', name:'Studio Capricho', specialty:'Cabeleireira • Especializada em Alisamento'}
 ];
 
+let availabilityBlocks = [];
+
 let portfolio = JSON.parse(localStorage.getItem('sc_portfolio') || 'null') || [
   {title:'Alisamento e finalização', category:'Resultado real', image:'assets/trabalho-01.jpg'},
   {title:'Alinhamento dos fios', category:'Resultado real', image:'assets/trabalho-02.jpg'},
@@ -151,8 +155,18 @@ function addMinutes(hhmm, mins){
 function overlaps(start1,end1,start2,end2){
   return start1 < end2 && end1 > start2;
 }
+function isBlocked(date,professionalId,time,end){
+  return availabilityBlocks.some(bl=>{
+    if(bl.date!==date)return false;
+    if(bl.professionalId && bl.professionalId!==professionalId)return false;
+    if(!bl.startTime&&!bl.endTime)return true;
+    const bs=bl.startTime||'00:00',be=bl.endTime||'23:59';
+    return overlaps(time,end,bs,be);
+  });
+}
 function isSlotFree(date, professionalId, time, duration){
   const end = addMinutes(time,duration);
+  if(isBlocked(date,professionalId,time,end))return false;
   return !getBookings().some(b =>
     b.date === date &&
     b.professionalId === professionalId &&
