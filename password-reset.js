@@ -102,3 +102,12 @@
     }
   });
 })();
+
+(function(){
+  if(document.querySelector('script[data-reviews-loader]')) return;
+  const s=document.createElement('script');
+  s.src='reviews.js';
+  s.defer=true;
+  s.dataset.reviewsLoader='true';
+  document.head.appendChild(s);
+})();
