@@ -18,21 +18,24 @@ const today=new Date(),minDate=today.toISOString().slice(0,10);document.getEleme
 if(sb){cloudLoad(false).then(()=>{localStorage.setItem('sc_services',JSON.stringify(services));populateAdmin();renderAll();}).catch(console.error);}
 if('serviceWorker'in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}
 
-function applyHomeFacade(){
+function applyHomeImage(){
   const home=document.getElementById('homeView');
   if(!home)return;
+  const oldCard=document.getElementById('studioFacadeCard');
+  if(oldCard)oldCard.remove();
   const oldTrust=home.querySelector('.trust-row');
   if(oldTrust){const note=oldTrust.nextElementSibling;if(note&&note.classList.contains('muted'))note.remove();oldTrust.remove();}
   home.querySelectorAll('.contact-card').forEach(card=>{if(card.textContent.includes('Instagram'))card.remove();});
-  if(window.STUDIO_FACHADA&&!document.getElementById('studioFacadeCard')){
-    const hero=home.querySelector('.hero-photo');
-    if(hero){
-      const wrap=document.createElement('div');wrap.id='studioFacadeCard';wrap.className='card';wrap.style.cssText='padding:0;overflow:hidden;margin:16px 0 22px;border-radius:20px;';
-      wrap.innerHTML=`<img src="${window.STUDIO_FACHADA}" alt="Fachada do Studio Capricho Hair" style="display:block;width:100%;height:auto;max-height:560px;object-fit:cover"><div style="padding:12px 14px"><strong>Studio Capricho Hair</strong><div class="muted" style="margin-top:4px">Av. Presbítero Manoel Antônio Dias Filho, 1420 — Jundiaí, SP</div></div>`;
-      hero.insertAdjacentElement('afterend',wrap);
-    }
+  const hero=home.querySelector('.hero-photo');
+  if(hero&&window.STUDIO_HOME_IMAGE){
+    hero.innerHTML='';
+    hero.style.backgroundImage=`url('${window.STUDIO_HOME_IMAGE}')`;
+    hero.style.backgroundPosition='center center';
+    hero.style.backgroundSize='cover';
+    hero.style.minHeight='580px';
+    hero.setAttribute('aria-label','Trabalho realizado no Studio Capricho Hair');
   }
 }
-(function loadFacade(){
-  const s=document.createElement('script');s.src='fachada.js?v=1';s.onload=applyHomeFacade;s.onerror=applyHomeFacade;document.head.appendChild(s);
+(function loadHomeImage(){
+  const s=document.createElement('script');s.src='homeimage.js?v=2';s.onload=applyHomeImage;s.onerror=applyHomeImage;document.head.appendChild(s);
 })();
