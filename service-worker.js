@@ -1,4 +1,4 @@
-const CACHE='studio-capricho-v11';
+const CACHE='studio-capricho-v12';
 const ASSETS=['./','./index.html','./admin.html','./manifest.json','./config.js','./app.css','./app1.js','./app2.js','./app3.js','./app4.js','./homeimage.js','./reviews.js','./password-reset.js'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
