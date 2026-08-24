@@ -86,8 +86,12 @@ function loadSharedHeroManager(){
   const s=document.createElement('script');s.src='app16.js?v=33';s.dataset.sharedHeroLoader='true';s.onload=loadDisplayPhotosManager;s.onerror=loadDisplayPhotosManager;document.body.appendChild(s);
 }
 function loadDisplayPhotosManager(){
-  if(document.querySelector('script[data-display-photos-loader]'))return;
-  const s=document.createElement('script');s.src='app17.js?v=34';s.dataset.displayPhotosLoader='true';document.body.appendChild(s);
+  if(document.querySelector('script[data-display-photos-loader]')){loadAdminHomeCleanup();return;}
+  const s=document.createElement('script');s.src='app17.js?v=34';s.dataset.displayPhotosLoader='true';s.onload=loadAdminHomeCleanup;s.onerror=loadAdminHomeCleanup;document.body.appendChild(s);
+}
+function loadAdminHomeCleanup(){
+  if(document.querySelector('script[data-admin-home-cleanup]'))return;
+  const s=document.createElement('script');s.src='app18.js?v=36';s.dataset.adminHomeCleanup='true';document.body.appendChild(s);
 }
 
 setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();loadBookingManagement();setTimeout(loadAdminMenu,450);},250);
