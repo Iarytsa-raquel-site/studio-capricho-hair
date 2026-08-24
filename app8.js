@@ -68,4 +68,9 @@ function loadPerformanceDashboard(){
   }
 }
 
-setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();},250);
+function loadBookingManagement(){
+  if(document.querySelector('script[data-booking-management-loader]'))return;
+  const s=document.createElement('script');s.src='app13.js?v=29';s.dataset.bookingManagementLoader='true';document.body.appendChild(s);
+}
+
+setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();loadBookingManagement();},250);
