@@ -79,7 +79,7 @@ function loadAdminMenu(){
 }
 function loadAdminPhoto(){
   if(document.querySelector('script[data-admin-photo-loader]'))return;
-  const s=document.createElement('script');s.src='app15.js?v=31';s.dataset.adminPhotoLoader='true';document.body.appendChild(s);
+  const s=document.createElement('script');s.src='app15.js?v=32';s.dataset.adminPhotoLoader='true';document.body.appendChild(s);
 }
 
 setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();loadBookingManagement();setTimeout(loadAdminMenu,450);},250);
