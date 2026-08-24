@@ -75,7 +75,11 @@ function loadBookingManagement(){
 function loadAdminMenu(){
   if(!document.querySelector('link[data-admin-menu-style]')){const l=document.createElement('link');l.rel='stylesheet';l.href='admin-menu.css?v=30';l.dataset.adminMenuStyle='true';document.head.appendChild(l);}
   if(document.querySelector('script[data-admin-menu-loader]'))return;
-  const s=document.createElement('script');s.src='app14.js?v=30';s.dataset.adminMenuLoader='true';document.body.appendChild(s);
+  const s=document.createElement('script');s.src='app14.js?v=30';s.dataset.adminMenuLoader='true';s.onload=loadAdminPhoto;s.onerror=loadAdminPhoto;document.body.appendChild(s);
+}
+function loadAdminPhoto(){
+  if(document.querySelector('script[data-admin-photo-loader]'))return;
+  const s=document.createElement('script');s.src='app15.js?v=31';s.dataset.adminPhotoLoader='true';document.body.appendChild(s);
 }
 
 setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();loadBookingManagement();setTimeout(loadAdminMenu,450);},250);
