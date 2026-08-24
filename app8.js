@@ -72,5 +72,10 @@ function loadBookingManagement(){
   if(document.querySelector('script[data-booking-management-loader]'))return;
   const s=document.createElement('script');s.src='app13.js?v=29';s.dataset.bookingManagementLoader='true';document.body.appendChild(s);
 }
+function loadAdminMenu(){
+  if(!document.querySelector('link[data-admin-menu-style]')){const l=document.createElement('link');l.rel='stylesheet';l.href='admin-menu.css?v=30';l.dataset.adminMenuStyle='true';document.head.appendChild(l);}
+  if(document.querySelector('script[data-admin-menu-loader]'))return;
+  const s=document.createElement('script');s.src='app14.js?v=30';s.dataset.adminMenuLoader='true';document.body.appendChild(s);
+}
 
-setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();loadBookingManagement();},250);
+setTimeout(()=>{if(adminMode)addQuickMessageButtons();initProfessionalLogin();loadAdminSecurityLayer();loadPerformanceDashboard();loadBookingManagement();setTimeout(loadAdminMenu,450);},250);
