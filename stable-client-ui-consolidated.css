@@ -1,0 +1,6 @@
+/* Studio Capricho — consolidated client UI (v6-v10). Visual-only; booking/Supabase logic untouched. */
+@import url('./stable-client-home-v6.css');
+@import url('./stable-client-sections-v7.css');
+@import url('./stable-client-booking-v8.css');
+@import url('./stable-client-account-v9.css');
+@import url('./stable-client-audit-v10.css');
