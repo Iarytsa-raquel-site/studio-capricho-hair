@@ -1,6 +1,57 @@
 (function(){
   if(!window.__ADMIN_ENTRY__) return;
+
+  let menuAberto=false;
   function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
+
+  function getSidebar(){return document.getElementById('adminProSidebar')}
+  function ensureOverlay(){
+    let o=document.getElementById('adminProOverlay');
+    if(!o){o=document.createElement('div');o.id='adminProOverlay';o.className='admin-pro-overlay';document.body.appendChild(o)}
+    return o;
+  }
+  function syncMenu(){
+    const side=getSidebar(),overlay=ensureOverlay();
+    if(!side)return;
+    side.classList.toggle('open',menuAberto);
+    overlay.classList.toggle('show',menuAberto);
+    document.body.classList.toggle('admin-menu-open',menuAberto);
+    const btn=document.querySelector('.admin-pro-menu-toggle');
+    if(btn){btn.setAttribute('aria-expanded',menuAberto?'true':'false');btn.setAttribute('aria-label',menuAberto?'Fechar menu':'Abrir menu')}
+  }
+  function setMenu(aberto){menuAberto=!!aberto;syncMenu()}
+  function toggleMenu(){setMenu(!menuAberto)}
+  window.adminMobileOpenMenu=()=>setMenu(true);
+  window.adminMobileCloseMenu=()=>setMenu(false);
+  window.adminMobileToggleMenu=toggleMenu;
+
+  function bindMenu(){
+    const side=getSidebar(),btn=document.querySelector('.admin-pro-menu-toggle');
+    if(!side||!btn)return false;
+    btn.style.display='flex';
+    btn.style.pointerEvents='auto';
+    btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();toggleMenu()};
+
+    const overlay=ensureOverlay();
+    overlay.onclick=function(ev){ev.preventDefault();setMenu(false)};
+
+    let collapse=side.querySelector('.admin-mobile-collapse');
+    if(!collapse){
+      collapse=document.createElement('button');
+      collapse.type='button';
+      collapse.className='admin-mobile-collapse';
+      collapse.innerHTML='<span>⇤</span> Recolher menu';
+      collapse.onclick=function(ev){ev.preventDefault();setMenu(false)};
+      side.appendChild(collapse);
+    }
+
+    side.querySelectorAll('.admin-pro-nav button').forEach(b=>{
+      if(!b.__scMenuClose){b.addEventListener('click',()=>{if(window.innerWidth<=760)setTimeout(()=>setMenu(false),20)});b.__scMenuClose=true}
+    });
+    syncMenu();
+    return true;
+  }
+
   function renderSalonSettings(){
     const p=document.getElementById('settingsPanel'); if(!p) return;
     const profile=window.studioProfile||{};
@@ -23,6 +74,7 @@
       <div class="admin-pro-card"><h3>Integrações</h3><p class="muted">Supabase conectado. WhatsApp e calendário externo podem ser adicionados futuramente.</p></div>
     </div>`;
   }
+
   window.adminMobileSaveSalon=async function(){
     try{
       if(typeof window.saveStudioProfile==='function'){
@@ -44,54 +96,29 @@
     }catch(e){ if(typeof window.toast==='function') toast('Não foi possível salvar. Tente novamente.'); }
   };
 
-  function bindTopMenu(){
-    const btn=document.querySelector('.admin-pro-menu-toggle');
-    const side=document.getElementById('adminProSidebar');
-    if(!btn||!side) return false;
-    btn.style.display='flex';
-    btn.style.pointerEvents='auto';
-    btn.style.position='relative';
-    btn.style.zIndex='5001';
-    if(!btn.__scBound){
-      const toggle=function(ev){
-        if(ev){ev.preventDefault();ev.stopPropagation();}
-        side.classList.toggle('open');
-      };
-      btn.addEventListener('click',toggle,{passive:false});
-      btn.addEventListener('touchend',function(ev){
-        ev.preventDefault();ev.stopPropagation();
-        side.classList.toggle('open');
-      },{passive:false});
-      btn.__scBound=true;
-    }
-    side.querySelectorAll('.admin-pro-nav button').forEach(b=>{
-      if(!b.__scCloseBound){
-        b.addEventListener('click',()=>side.classList.remove('open'));
-        b.__scCloseBound=true;
-      }
-    });
-    return true;
-  }
-
   let tries=0;
   const timer=setInterval(()=>{
     tries++;
-    bindTopMenu();
+    bindMenu();
     if(typeof window.adminProOpen==='function'){
       if(!window.adminProOpen.__mobileSettingsFix){
         const old=window.adminProOpen;
         const wrapped=function(id){
           const r=old.apply(this,arguments);
           if(id==='settingsPanel')setTimeout(renderSalonSettings,0);
-          setTimeout(bindTopMenu,0);
+          if(window.innerWidth<=760)setTimeout(()=>setMenu(false),30);
+          setTimeout(bindMenu,0);
           return r
         };
         wrapped.__mobileSettingsFix=true; window.adminProOpen=wrapped;
       }
-      if(bindTopMenu()) clearInterval(timer);
-    } else if(tries>150){clearInterval(timer)}
+      if(bindMenu()) clearInterval(timer);
+    } else if(tries>180){clearInterval(timer)}
   },100);
 
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(bindTopMenu,100)});
-  window.addEventListener('pageshow',()=>setTimeout(bindTopMenu,100));
+  const observer=new MutationObserver(()=>bindMenu());
+  observer.observe(document.body,{childList:true,subtree:true});
+  window.addEventListener('resize',()=>{if(window.innerWidth>760)setMenu(false);else syncMenu()});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(bindMenu,100)});
+  window.addEventListener('pageshow',()=>setTimeout(bindMenu,100));
 })();
