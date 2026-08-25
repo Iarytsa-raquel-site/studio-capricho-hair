@@ -10,10 +10,14 @@
   const oldSetStatus=window.setBookingStatus;if(oldSetStatus&&!oldSetStatus.__stableAppointmentsV55){const wrapped=async function(){const r=await oldSetStatus.apply(this,arguments);if(document.getElementById('agendaPanel')?.classList.contains('active'))setTimeout(renderConfirmedAppointments,30);return r;};wrapped.__stableAppointmentsV55=true;window.setBookingStatus=wrapped;}
   function init(){ensurePanel('availabilityPanel');ensurePanel('quickBookingPanel');addMenuItems();moveAvailability();moveQuickBooking();if(document.getElementById('agendaPanel')?.classList.contains('active'))renderConfirmedAppointments();}
   setTimeout(init,700);setTimeout(init,1600);setTimeout(init,2800);
-  if(!window.__ADMIN_ENTRY__ && !document.querySelector('link[href*="vibrant-theme.css"]')){const t=document.createElement('link');t.rel='stylesheet';t.href='vibrant-theme.css?v=60';document.head.appendChild(t);}
-  if(window.__ADMIN_ENTRY__){
+  if(!window.__ADMIN_ENTRY__){
     document.querySelectorAll('link[href*="vibrant-theme.css"]').forEach(x=>x.remove());
-    if(!document.querySelector('link[href*="admin-pro.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='admin-pro.css?v=62';document.head.appendChild(l);}
-    if(!document.querySelector('script[src*="app23.js"]')){const s=document.createElement('script');s.src='app23.js?v=62';document.body.appendChild(s);}
+    if(!document.querySelector('link[href*="client-v3.css"]')){const c=document.createElement('link');c.rel='stylesheet';c.href='client-v3.css?v=64';document.head.appendChild(c);}
+    let tries=0;const wait=setInterval(()=>{tries++;if(window.cv2Nav||tries>40){clearInterval(wait);if(!document.querySelector('script[src*="app24.js"]')){const s=document.createElement('script');s.src='app24.js?v=64';document.body.appendChild(s);}}},100);
+  }
+  if(window.__ADMIN_ENTRY__){
+    document.querySelectorAll('link[href*="vibrant-theme.css"],link[href*="client-v3.css"]').forEach(x=>x.remove());
+    if(!document.querySelector('link[href*="admin-pro.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='admin-pro.css?v=63';document.head.appendChild(l);}
+    if(!document.querySelector('script[src*="app23.js"]')){const s=document.createElement('script');s.src='app23.js?v=63';document.body.appendChild(s);}
   }
 })();
