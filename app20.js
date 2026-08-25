@@ -10,9 +10,10 @@
   const oldSetStatus=window.setBookingStatus;if(oldSetStatus&&!oldSetStatus.__stableAppointmentsV55){const wrapped=async function(){const r=await oldSetStatus.apply(this,arguments);if(document.getElementById('agendaPanel')?.classList.contains('active'))setTimeout(renderConfirmedAppointments,30);return r;};wrapped.__stableAppointmentsV55=true;window.setBookingStatus=wrapped;}
   function init(){ensurePanel('availabilityPanel');ensurePanel('quickBookingPanel');addMenuItems();moveAvailability();moveQuickBooking();if(document.getElementById('agendaPanel')?.classList.contains('active'))renderConfirmedAppointments();}
   setTimeout(init,700);setTimeout(init,1600);setTimeout(init,2800);
-  if(!document.querySelector('link[href*="vibrant-theme.css"]')){const t=document.createElement('link');t.rel='stylesheet';t.href='vibrant-theme.css?v=60';document.head.appendChild(t);}
+  if(!window.__ADMIN_ENTRY__ && !document.querySelector('link[href*="vibrant-theme.css"]')){const t=document.createElement('link');t.rel='stylesheet';t.href='vibrant-theme.css?v=60';document.head.appendChild(t);}
   if(window.__ADMIN_ENTRY__){
-    if(!document.querySelector('link[href*="admin-pro.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='admin-pro.css?v=60';document.head.appendChild(l);}
-    if(!document.querySelector('script[src*="app23.js"]')){const s=document.createElement('script');s.src='app23.js?v=60';document.body.appendChild(s);}
+    document.querySelectorAll('link[href*="vibrant-theme.css"]').forEach(x=>x.remove());
+    if(!document.querySelector('link[href*="admin-pro.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='admin-pro.css?v=62';document.head.appendChild(l);}
+    if(!document.querySelector('script[src*="app23.js"]')){const s=document.createElement('script');s.src='app23.js?v=62';document.body.appendChild(s);}
   }
 })();
