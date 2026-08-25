@@ -43,16 +43,55 @@
       renderSalonSettings();
     }catch(e){ if(typeof window.toast==='function') toast('Não foi possível salvar. Tente novamente.'); }
   };
+
+  function bindTopMenu(){
+    const btn=document.querySelector('.admin-pro-menu-toggle');
+    const side=document.getElementById('adminProSidebar');
+    if(!btn||!side) return false;
+    btn.style.display='flex';
+    btn.style.pointerEvents='auto';
+    btn.style.position='relative';
+    btn.style.zIndex='5001';
+    if(!btn.__scBound){
+      const toggle=function(ev){
+        if(ev){ev.preventDefault();ev.stopPropagation();}
+        side.classList.toggle('open');
+      };
+      btn.addEventListener('click',toggle,{passive:false});
+      btn.addEventListener('touchend',function(ev){
+        ev.preventDefault();ev.stopPropagation();
+        side.classList.toggle('open');
+      },{passive:false});
+      btn.__scBound=true;
+    }
+    side.querySelectorAll('.admin-pro-nav button').forEach(b=>{
+      if(!b.__scCloseBound){
+        b.addEventListener('click',()=>side.classList.remove('open'));
+        b.__scCloseBound=true;
+      }
+    });
+    return true;
+  }
+
   let tries=0;
   const timer=setInterval(()=>{
     tries++;
+    bindTopMenu();
     if(typeof window.adminProOpen==='function'){
       if(!window.adminProOpen.__mobileSettingsFix){
         const old=window.adminProOpen;
-        const wrapped=function(id){const r=old.apply(this,arguments);if(id==='settingsPanel')setTimeout(renderSalonSettings,0);return r};
+        const wrapped=function(id){
+          const r=old.apply(this,arguments);
+          if(id==='settingsPanel')setTimeout(renderSalonSettings,0);
+          setTimeout(bindTopMenu,0);
+          return r
+        };
         wrapped.__mobileSettingsFix=true; window.adminProOpen=wrapped;
       }
-      clearInterval(timer);
-    } else if(tries>100){clearInterval(timer)}
+      if(bindTopMenu()) clearInterval(timer);
+    } else if(tries>150){clearInterval(timer)}
   },100);
+
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(bindTopMenu,100)});
+  window.addEventListener('pageshow',()=>setTimeout(bindTopMenu,100));
 })();
