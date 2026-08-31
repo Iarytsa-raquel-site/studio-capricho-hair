@@ -8,7 +8,7 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Monogram } from "@/components/monogram";
+import { Monogram, StudioWordmark } from "@/components/monogram";
 import { AvailableSlot, CartItem, DEFAULT_SETTINGS, Service, StudioSettings } from "@/lib/types";
 import { dateBR, money, normalizePhone, rpc, supabaseRequest } from "@/lib/supabase";
 
@@ -112,8 +112,8 @@ export function PublicSite() {
       <Toaster richColors position="top-center" />
       <header className="public-header">
         <a className="brand" href="#inicio" aria-label="Ir para o início">
-          <Monogram compact />
-          <span><strong>{settings.name}</strong><small>{settings.specialty}</small></span>
+          <StudioWordmark />
+          <span className="brand-description"><small>{settings.specialty}</small></span>
         </a>
         <nav className={menuOpen ? "public-nav public-nav-open" : "public-nav"} aria-label="Navegação principal">
           <a href="#inicio" onClick={() => setMenuOpen(false)}>Início</a>
@@ -189,7 +189,7 @@ export function PublicSite() {
         </section>
       </main>
 
-      <footer><div className="brand footer-brand"><Monogram compact /><span><strong>{settings.name}</strong><small>{settings.slogan}</small></span></div><p>© {new Date().getFullYear()} {settings.name}. Todos os direitos reservados.</p><a href="/admin">Acesso administrativo</a></footer>
+      <footer><div className="brand footer-brand"><StudioWordmark /><span className="brand-description"><small>{settings.slogan}</small></span></div><p>© {new Date().getFullYear()} {settings.name}. Todos os direitos reservados.</p><a href="/admin">Acesso administrativo</a></footer>
 
       <button className="floating-cart" onClick={() => setCartOpen(true)} aria-label={`Abrir orçamento com ${count} itens`}>
         <ShoppingBag />{count > 0 && <span>{count}</span>}<strong>{count ? money(total) : "Orçamento"}</strong>
