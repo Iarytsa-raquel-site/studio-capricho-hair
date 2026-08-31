@@ -1,9 +1,0 @@
-{
-  "name": "Studio Capricho Hair",
-  "short_name": "Capricho Hair",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#fff8fb",
-  "theme_color": "#111111",
-  "description": "Aplicativo de agendamento do Studio Capricho Hair"
-}
